@@ -1,0 +1,43 @@
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Etc/UTC}
+      WEBUI_PORT: 4000
+      TORRENTING_PORT: ${TORRENTING_PORT:-6881}
+    ports:
+      - "4000:4000"
+      - "${TORRENTING_PORT:-6881}:${TORRENTING_PORT:-6881}"
+      - "${TORRENTING_PORT:-6881}:${TORRENTING_PORT:-6881}/udp"
+    volumes:
+      - ./data/qbittorrent/config:/config
+      - ./data/media/movies:/data/media/movies
+      - ./data/media/tv:/data/media/tv
+      - ./data/torrents/incomplete:/data/torrents/incomplete
+      - ./data/torrents/downloads:/data/torrents/downloads
+    restart: unless-stopped
+
+  torrent-panel:
+    build:
+      context: .
+    environment:
+      QBIT_URL: http://qbittorrent:4000
+      QBIT_USERNAME: ${QBIT_USERNAME:-admin}
+      QBIT_PASSWORD: ${QBIT_PASSWORD:-adminadmin}
+      MOVIES_PATH: /data/media/movies
+      TV_PATH: /data/media/tv
+      INCOMPLETE_PATH: /data/torrents/incomplete
+      DOWNLOADS_PATH: /data/torrents/downloads
+      API_PORT: 8080
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - ./data/media/movies:/data/media/movies
+      - ./data/media/tv:/data/media/tv
+      - ./data/torrents/incomplete:/data/torrents/incomplete
+      - ./data/torrents/downloads:/data/torrents/downloads
+    depends_on:
+      - qbittorrent
+    restart: unless-stopped
