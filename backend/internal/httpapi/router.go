@@ -12,15 +12,21 @@ import (
 )
 
 type router struct {
-	service *torrents.Service
-	cfg     config.Config
+	service    *torrents.Service
+	qbitClient QbitConfigurer
+	cfg        config.Config
 }
 
-func NewRouter(service *torrents.Service, cfg config.Config) http.Handler {
-	r := &router{service: service, cfg: cfg}
+type QbitConfigurer interface {
+	Configure(baseURL, username, password string)
+}
+
+func NewRouter(service *torrents.Service, qbitClient QbitConfigurer, cfg config.Config) http.Handler {
+	r := &router{service: service, qbitClient: qbitClient, cfg: cfg}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/health", r.health)
 	mux.HandleFunc("GET /api/config", r.config)
+	mux.HandleFunc("PUT /api/config/qbit", r.updateQbitConfig)
 	mux.HandleFunc("GET /api/torrents", r.list)
 	mux.HandleFunc("POST /api/torrents/magnet", r.addMagnet)
 	mux.HandleFunc("POST /api/torrents/file", r.addFile)
@@ -52,7 +58,34 @@ func (r *router) health(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (r *router) config(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, r.cfg)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"configured":     r.cfg.QbitURL != "" && r.cfg.QbitUsername != "",
+		"qbitUrl":        r.cfg.QbitURL,
+		"qbitUsername":   r.cfg.QbitUsername,
+		"moviesPath":     r.cfg.MoviesPath,
+		"tvPath":         r.cfg.TVPath,
+		"incompletePath": r.cfg.IncompletePath,
+		"downloadsPath":  r.cfg.DownloadsPath,
+	})
+}
+
+func (r *router) updateQbitConfig(w http.ResponseWriter, req *http.Request) {
+	var qbit config.Qbit
+	if err := json.NewDecoder(req.Body).Decode(&qbit); err != nil {
+		writeError(w, err)
+		return
+	}
+	qbit.URL = strings.TrimSpace(qbit.URL)
+	qbit.Username = strings.TrimSpace(qbit.Username)
+	if err := config.SaveQbit(r.cfg.ConfigDir, qbit); err != nil {
+		writeError(w, err)
+		return
+	}
+	r.cfg.QbitURL = qbit.URL
+	r.cfg.QbitUsername = qbit.Username
+	r.cfg.QbitPassword = qbit.Password
+	r.qbitClient.Configure(qbit.URL, qbit.Username, qbit.Password)
+	writeJSON(w, http.StatusOK, map[string]any{"configured": true})
 }
 
 func (r *router) list(w http.ResponseWriter, req *http.Request) {
@@ -120,7 +153,7 @@ func writeError(w http.ResponseWriter, err error) {
 func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

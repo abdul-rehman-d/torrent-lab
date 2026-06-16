@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,6 +16,8 @@ import (
 	"sync"
 	"time"
 )
+
+var ErrNotConfigured = errors.New("qBittorrent is not configured")
 
 type Client struct {
 	baseURL  string
@@ -51,6 +54,17 @@ func NewClient(baseURL, username, password, savePath string) *Client {
 	}
 }
 
+func (c *Client) Configure(baseURL, username, password string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.baseURL = strings.TrimRight(baseURL, "/")
+	c.username = username
+	c.password = password
+	c.loggedIn = false
+	jar, _ := cookiejar.New(nil)
+	c.http.Jar = jar
+}
+
 func (c *Client) ListTorrents(ctx context.Context) ([]Torrent, error) {
 	req, err := c.request(ctx, http.MethodGet, "/api/v2/torrents/info", nil, "")
 	if err != nil {
@@ -67,8 +81,8 @@ func (c *Client) ListTorrents(ctx context.Context) ([]Torrent, error) {
 func (c *Client) AddMagnet(ctx context.Context, magnet string) error {
 	form := url.Values{}
 	form.Set("urls", magnet)
-	if c.savePath != "" {
-		form.Set("savepath", c.savePath)
+	if savePath := c.currentSavePath(); savePath != "" {
+		form.Set("savepath", savePath)
 	}
 	req, err := c.request(ctx, http.MethodPost, "/api/v2/torrents/add", strings.NewReader(form.Encode()), "application/x-www-form-urlencoded")
 	if err != nil {
@@ -87,8 +101,8 @@ func (c *Client) AddTorrentFile(ctx context.Context, filename string, r io.Reade
 	if _, err := io.Copy(part, r); err != nil {
 		return err
 	}
-	if c.savePath != "" {
-		if err := writer.WriteField("savepath", c.savePath); err != nil {
+	if savePath := c.currentSavePath(); savePath != "" {
+		if err := writer.WriteField("savepath", savePath); err != nil {
 			return err
 		}
 	}
@@ -126,16 +140,18 @@ func (c *Client) SetLocation(ctx context.Context, hash, location string) error {
 }
 
 func (c *Client) login(ctx context.Context) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.loggedIn {
+	baseURL, username, password, loggedIn := c.currentLogin()
+	if baseURL == "" || username == "" || password == "" {
+		return ErrNotConfigured
+	}
+	if loggedIn {
 		return nil
 	}
 
 	form := url.Values{}
-	form.Set("username", c.username)
-	form.Set("password", c.password)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/v2/auth/login", strings.NewReader(form.Encode()))
+	form.Set("username", username)
+	form.Set("password", password)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL+"/api/v2/auth/login", strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
@@ -147,14 +163,14 @@ func (c *Client) login(ctx context.Context) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNoContent {
-		c.loggedIn = true
+		c.markLoggedIn()
 		return nil
 	}
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK || strings.TrimSpace(string(body)) != "Ok." {
 		return fmt.Errorf("qbit login failed: status %d body %q", resp.StatusCode, string(body))
 	}
-	c.loggedIn = true
+	c.markLoggedIn()
 	return nil
 }
 
@@ -162,7 +178,11 @@ func (c *Client) request(ctx context.Context, method, path string, body io.Reade
 	if err := c.login(ctx); err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, body)
+	baseURL := c.currentBaseURL()
+	if baseURL == "" {
+		return nil, ErrNotConfigured
+	}
+	req, err := http.NewRequestWithContext(ctx, method, baseURL+path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -210,4 +230,28 @@ func (c *Client) markLoggedOut() {
 	c.mu.Lock()
 	c.loggedIn = false
 	c.mu.Unlock()
+}
+
+func (c *Client) markLoggedIn() {
+	c.mu.Lock()
+	c.loggedIn = true
+	c.mu.Unlock()
+}
+
+func (c *Client) currentLogin() (string, string, string, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.baseURL, c.username, c.password, c.loggedIn
+}
+
+func (c *Client) currentBaseURL() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.baseURL
+}
+
+func (c *Client) currentSavePath() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.savePath
 }

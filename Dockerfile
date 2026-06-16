@@ -15,7 +15,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server
 FROM alpine:latest
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
-ENV API_PORT=8080
+ENV PORT=8080
+ENV CONFIG_DIR=/config
 ENV WEB_DIR=/web
 COPY --from=backend-build /server /server
 COPY --from=frontend-build /src/frontend/build /web

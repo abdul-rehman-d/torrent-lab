@@ -10,7 +10,7 @@ The app is packaged as one Go server:
 
 ## Behavior
 
-- qBittorrent is expected at `http://qbittorrent:4000` from Docker by default.
+- In the testing Compose setup, qBittorrent is reachable from the app at `http://qbittorrent:4000`.
 - If qBittorrent is included in Compose, expose its Web UI at `http://localhost:4000`.
 - Magnet links and torrent files are added to qBittorrent with `savepath=/data/torrents/downloads`.
 - The UI and API are served from the same port. API routes live under `/api`.
@@ -29,6 +29,7 @@ The default Compose setup uses local folders under `./data` for testing.
 ./data/media/tv
 ./data/torrents/incomplete
 ./data/torrents/downloads
+./data/config
 ./data/qbittorrent/config
 ```
 
@@ -55,7 +56,7 @@ Movie torrents are moved to:
 
 ## Run
 
-Create `.env` from `.env.example` and update qBittorrent credentials if needed.
+Create `.env` from `.env.example` if you need to change local ports or ids.
 
 ```sh
 docker compose -f testing-docker-compose.yml up --build
@@ -75,14 +76,22 @@ http://localhost:4000
 
 The qBittorrent config is stored at `./data/qbittorrent/config` by default.
 
-On first boot, qBittorrent may generate a temporary admin password in its container logs. Log in to the Web UI and set the password to match `QBIT_PASSWORD`, or update `QBIT_PASSWORD` to match what you configure in qBittorrent.
+The app config is stored at `./data/config/qbit.json` by default. qBittorrent connection settings are not passed through Compose; save them through the app config API/UI.
+
+On first boot, qBittorrent may generate a temporary admin password in its container logs. Log in to the Web UI, configure qBittorrent credentials there, then save the same qBittorrent URL and credentials through the app config API/UI.
+
+Config API:
+
+```txt
+GET /api/config
+PUT /api/config/qbit
+```
 
 ## Environment
 
 ```env
-QBIT_USERNAME=admin
-QBIT_PASSWORD=adminadmin
-API_PORT=8080
+PORT=8080
+CONFIG_DIR=/config
 PUID=1000
 PGID=1000
 TZ=Etc/UTC
@@ -96,7 +105,7 @@ Backend:
 ```sh
 cd backend
 go test ./...
-WEB_DIR=../frontend/build go run ./cmd/server
+WEB_DIR=../frontend/build CONFIG_DIR=../data/config go run ./cmd/server
 ```
 
 Frontend:

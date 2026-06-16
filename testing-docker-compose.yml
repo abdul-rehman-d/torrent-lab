@@ -23,17 +23,16 @@ services:
     build:
       context: .
     environment:
-      QBIT_URL: http://qbittorrent:4000
-      QBIT_USERNAME: ${QBIT_USERNAME:-admin}
-      QBIT_PASSWORD: ${QBIT_PASSWORD:-adminadmin}
+      CONFIG_DIR: ${CONFIG_DIR:-/config}
       MOVIES_PATH: /data/media/movies
       TV_PATH: /data/media/tv
       INCOMPLETE_PATH: /data/torrents/incomplete
       DOWNLOADS_PATH: /data/torrents/downloads
-      API_PORT: 8080
+      PORT: 8080
     ports:
-      - "${API_PORT:-8080}:8080"
+      - "${PORT:-8080}:8080"
     volumes:
+      - ./data/config:${CONFIG_DIR:-/config}
       - ./data/media/movies:/data/media/movies
       - ./data/media/tv:/data/media/tv
       - ./data/torrents/incomplete:/data/torrents/incomplete

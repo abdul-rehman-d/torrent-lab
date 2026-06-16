@@ -35,8 +35,8 @@ func main() {
 	go service.StartCompletionWorker(ctx, 15*time.Second)
 
 	server := &http.Server{
-		Addr:              ":" + cfg.APIPort,
-		Handler:           httpapi.NewRouter(service, cfg),
+		Addr:              ":" + cfg.Port,
+		Handler:           httpapi.NewRouter(service, qbitClient, cfg),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
