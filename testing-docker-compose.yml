@@ -13,10 +13,10 @@ services:
       - "${TORRENTING_PORT:-6881}:${TORRENTING_PORT:-6881}/udp"
     volumes:
       - ./data/qbittorrent/config:/config
-      - ./data/media/movies:/data/media/movies
-      - ./data/media/tv:/data/media/tv
-      - ./data/torrents/incomplete:/data/torrents/incomplete
-      - ./data/torrents/downloads:/data/torrents/downloads
+      - ./data/media/movies:/media/movies
+      - ./data/media/tv:/media/tv
+      - ./data/torrents/incomplete:/torrents/incomplete
+      - ./data/torrents/downloads:/torrents/downloads
     restart: unless-stopped
 
   torrent-panel:
@@ -24,19 +24,19 @@ services:
       context: .
     environment:
       CONFIG_DIR: ${CONFIG_DIR:-/config}
-      MOVIES_PATH: /data/media/movies
-      TV_PATH: /data/media/tv
-      INCOMPLETE_PATH: /data/torrents/incomplete
-      DOWNLOADS_PATH: /data/torrents/downloads
+      MOVIES_PATH: /media/movies
+      TV_PATH: /media/tv
+      INCOMPLETE_PATH: /torrents/incomplete
+      DOWNLOADS_PATH: /torrents/downloads
       PORT: 8080
     ports:
       - "${PORT:-8080}:8080"
     volumes:
       - ./data/config:${CONFIG_DIR:-/config}
-      - ./data/media/movies:/data/media/movies
-      - ./data/media/tv:/data/media/tv
-      - ./data/torrents/incomplete:/data/torrents/incomplete
-      - ./data/torrents/downloads:/data/torrents/downloads
+      - ./data/media/movies:/media/movies
+      - ./data/media/tv:/media/tv
+      - ./data/torrents/incomplete:/torrents/incomplete
+      - ./data/torrents/downloads:/torrents/downloads
     depends_on:
       - qbittorrent
     restart: unless-stopped

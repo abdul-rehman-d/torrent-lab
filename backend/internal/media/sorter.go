@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -101,9 +102,17 @@ func (s *Sorter) destinationDir(info MediaInfo) string {
 		if season == "" {
 			season = "01"
 		}
-		return filepath.Join(s.tvPath, info.Title, "Season "+season)
+		return filepath.Join(s.tvPath, info.Title, info.Title+" Season "+seasonNumber(season))
 	}
 	return filepath.Join(s.moviesPath, info.Title)
+}
+
+func seasonNumber(season string) string {
+	number, err := strconv.Atoi(season)
+	if err != nil {
+		return strings.TrimLeft(season, "0")
+	}
+	return strconv.Itoa(number)
 }
 
 func collectMediaEntries(sourcePath string) ([]string, error) {

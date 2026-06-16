@@ -42,7 +42,7 @@ func TestDestinationLocationForTV(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(root, "tv", "The Show", "Season 02")
+	want := filepath.Join(root, "tv", "The Show", "The Show Season 2")
 	if destination != want {
 		t.Fatalf("destination = %q, want %q", destination, want)
 	}
