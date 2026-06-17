@@ -14,13 +14,16 @@ COPY backend/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server
 
 FROM alpine:latest
-RUN addgroup -S app && adduser -S app -G app
+RUN apk add --no-cache su-exec
 WORKDIR /app
 ENV PORT=8080
 ENV CONFIG_DIR=/config
 ENV WEB_DIR=/web
+ENV PUID=1000
+ENV PGID=1000
 COPY --from=backend-build /server /server
 COPY --from=frontend-build /src/frontend/build /web
-USER app
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["/server"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
