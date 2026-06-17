@@ -1,9 +1,10 @@
 FROM node:latest AS frontend-build
 WORKDIR /src/frontend
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+RUN npm install -g pnpm@10
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY frontend/ ./
-RUN npm run build
+RUN pnpm run build
 
 FROM golang:latest AS backend-build
 WORKDIR /src/backend
