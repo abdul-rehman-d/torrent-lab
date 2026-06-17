@@ -10,6 +10,8 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "@fontsource/bitcount-grid-double": "^5.2.2",
+    "@fontsource/inter": "^5.2.8",
     "@sveltejs/adapter-static": "^3.0.8",
     "@sveltejs/kit": "^2.15.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -20,8 +22,11 @@
     "vite": "^6.0.7"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^22.10.2",
     "svelte-check": "^4.1.1",
+    "tailwindcss": "^4.3.1",
     "typescript": "^5.7.2"
   }
 }

@@ -1,4 +1,4 @@
-const apiBase = '/api';
+const apiBase = process.env.NODE_ENV === "development" ? 'http://localhost:8080/api' : '/api';
 
 export type Torrent = {
   hash: string;

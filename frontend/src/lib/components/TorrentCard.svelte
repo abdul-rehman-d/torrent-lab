@@ -11,18 +11,29 @@
   let pct = $derived(percent(torrent.progress));
 </script>
 
-<article class="torrent-card">
-  <div class="torrent-head">
+<article class="border-t border-neutral-700 py-5 sm:py-6">
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
     <div>
-      <h2>{torrent.name}</h2>
-      <p>{torrent.kind} / {torrent.state} / ETA: {formatEta(torrent.eta)}</p>
+      <h2 class="text-xl font-semibold leading-tight text-neutral-100 sm:text-2xl">{torrent.name}</h2>
+      <p class="mt-2 text-sm text-neutral-400">{torrent.kind} / {torrent.state} / ETA: {formatEta(torrent.eta)}</p>
     </div>
-    <button class="menu" aria-label={`Remove ${torrent.name}`} onclick={() => onRemove(torrent.hash)} title="Remove from qBittorrent">
-      <span></span><span></span><span></span>
+    <button
+      class="rounded-lg p-2 text-orange-400 transition hover:bg-orange-400/10 hover:text-orange-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
+      aria-label={`Remove ${torrent.name}`}
+      onclick={() => onRemove(torrent.hash)}
+      title="Remove from qBittorrent"
+    >
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 6h18" />
+        <path d="M8 6V4h8v2" />
+        <path d="M19 6l-1 14H6L5 6" />
+        <path d="M10 11v5" />
+        <path d="M14 11v5" />
+      </svg>
     </button>
   </div>
-  <div class="torrent-progress">
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
     <ProgressBar value={pct} />
-    <strong>{pct}%</strong>
+    <strong class="min-w-16 text-orange-300 sm:text-right">{pct}%</strong>
   </div>
 </article>

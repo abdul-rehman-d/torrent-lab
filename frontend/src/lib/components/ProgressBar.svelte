@@ -1,12 +1,16 @@
 <script lang="ts">
   let { value = 0 } = $props<{ value: number }>();
 
-  const blocks = 24;
-  let filled = $derived(Math.round((Math.max(0, Math.min(100, value)) / 100) * blocks));
+  let clamped = $derived(Math.max(0, Math.min(100, value)));
 </script>
 
-<div class="progress" aria-label={`Download progress ${value}%`} role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={value}>
-  {#each Array(blocks) as _, index}
-    <span class:filled={index < filled}></span>
-  {/each}
+<div
+  class="h-2 w-full overflow-hidden rounded-full bg-neutral-800"
+  aria-label={`Download progress ${value}%`}
+  role="progressbar"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-valuenow={value}
+>
+  <span class="block h-full rounded-full bg-orange-300" style={`width: ${clamped}%`}></span>
 </div>
