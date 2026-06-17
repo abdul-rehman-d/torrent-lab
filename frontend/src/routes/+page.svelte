@@ -29,14 +29,14 @@
       config = await getConfig();
       if (!config.configured) {
         loading = false;
-        error = "Configure kube-torrent before loading torrents.";
+        error = "configure qbittorrent before loading torrents.";
         return;
       }
       await refresh();
       startPolling();
     } catch (err) {
       loading = false;
-      error = err instanceof Error ? err.message : "Could not load config.";
+      error = err instanceof Error ? err.message : "could not load config.";
     }
   }
 
@@ -54,7 +54,7 @@
   async function refresh() {
     if (!config?.configured) {
       loading = false;
-      error = "Configure kube-torrent before loading torrents.";
+      error = "configure qbittorrent before loading torrents.";
       stopPolling();
       return;
     }
@@ -62,7 +62,7 @@
       torrents = await listTorrents();
       error = "";
     } catch (err) {
-      error = err instanceof Error ? err.message : "Could not load torrents.";
+      error = err instanceof Error ? err.message : "could not load torrents.";
       stopPolling();
     } finally {
       loading = false;
@@ -73,7 +73,7 @@
     if (!canUseTorrents()) return;
     if (
       !confirm(
-        "Remove this torrent from qBittorrent? Files will not be deleted.",
+        "cemove this torrent from qBittorrent? files will not be deleted.",
       )
     )
       return;
@@ -111,7 +111,7 @@
   function canUseTorrents() {
     if (config?.configured && !error) return true;
     if (!config?.configured) {
-      error = "Configure kube-torrent before adding torrents.";
+      error = "configure qbittorrent before adding torrents.";
     }
     return false;
   }
@@ -124,7 +124,7 @@
       await refresh();
       if (!error) startPolling();
     } catch (err) {
-      error = err instanceof Error ? err.message : "Could not load torrents.";
+      error = err instanceof Error ? err.message : "could not load torrents.";
       loading = false;
       stopPolling();
     }
@@ -138,7 +138,7 @@
       if (text.startsWith("magnet:?")) {
         event.preventDefault();
         handleMagnet(text).catch((err) => {
-          error = err instanceof Error ? err.message : "Could not add magnet.";
+          error = err instanceof Error ? err.message : "could not add magnet.";
         });
       }
     };
@@ -162,7 +162,7 @@
       dragDepth = 0;
       draggingOverWindow = false;
       handleDrop(event.dataTransfer).catch((err) => {
-        error = err instanceof Error ? err.message : "Could not add torrent.";
+        error = err instanceof Error ? err.message : "could not add torrent.";
       });
     };
 
