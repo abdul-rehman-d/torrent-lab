@@ -39,7 +39,7 @@
       });
       onClose();
     } catch (err) {
-      error = err instanceof Error ? err.message : "Could not save settings.";
+      error = err instanceof Error ? err.message : "could not save settings.";
     } finally {
       saving = false;
     }
@@ -65,12 +65,12 @@
       settings
     </h2>
     <p class="mt-2 text-sm text-neutral-400">
-      connect TorrentLab to your qBittorrent API.
+      connect Torrentlab to your qBittorrent API.
     </p>
 
     <div class="mt-6 grid gap-4">
       <label class="grid gap-2 text-sm font-semibold text-neutral-400">
-        URL
+        url
         <input
           class="w-full rounded-xl border border-neutral-700 bg-neutral-950 p-3 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-orange-300 focus:ring-2 focus:ring-orange-300/20"
           bind:value={qbitUrl}
@@ -79,7 +79,7 @@
         />
       </label>
       <label class="grid gap-2 text-sm font-semibold text-neutral-400">
-        Username
+        username
         <input
           class="w-full rounded-xl border border-neutral-700 bg-neutral-950 p-3 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-orange-300 focus:ring-2 focus:ring-orange-300/20"
           bind:value={qbitUsername}
@@ -87,13 +87,13 @@
         />
       </label>
       <label class="grid gap-2 text-sm font-semibold text-neutral-400">
-        Password
+        password
         <input
           class="w-full rounded-xl border border-neutral-700 bg-neutral-950 p-3 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-orange-300 focus:ring-2 focus:ring-orange-300/20"
           bind:value={qbitPassword}
           autocomplete="current-password"
           placeholder={config?.configured
-            ? "Enter a new password to save changes"
+            ? "enter a new password to save changes"
             : ""}
           type="password"
         />

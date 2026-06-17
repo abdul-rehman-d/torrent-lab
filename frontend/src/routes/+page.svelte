@@ -73,7 +73,7 @@
     if (!canUseTorrents()) return;
     if (
       !confirm(
-        "cemove this torrent from qBittorrent? files will not be deleted.",
+        "remove this torrent from qBittorrent? files will not be deleted.",
       )
     )
       return;
@@ -185,7 +185,7 @@
 </script>
 
 <svelte:head>
-  <title>Torrent Panel</title>
+  <title>Torrentlab</title>
 </svelte:head>
 
 <div
@@ -197,7 +197,7 @@
     <header class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-2xl sm:text-3xl font-bitcount">
-          <a href="/" class="text-indigo-400"> TorrentLab </a>
+          <a href="/" class="text-indigo-400"> Torrentlab </a>
         </h1>
         <p class="text-base sm:text-lg lg:text-xl text-neutral-400">
           quickly add torrents and organize your movies and shows automagically
@@ -206,7 +206,7 @@
       </div>
       <button
         class="grid size-6 shrink-0 place-items-center rounded-full border border-neutral-700 bg-neutral-950/40 text-neutral-300 transition hover:border-orange-300 hover:bg-orange-300/10 hover:text-orange-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 sm:size-8"
-        aria-label="Open settings"
+        aria-label="open settings"
         title="settings"
         onclick={() => (settingsOpen = true)}
       >
@@ -254,7 +254,7 @@
             <h2
               class="max-w-xl text-2xl font-semibold leading-tight text-neutral-100 sm:text-4xl"
             >
-              Paste a magnet link or drop a torrent file anywhere to start
+              paste a magnet link or drop a torrent file anywhere to start
               downloading.
             </h2>
             <div class="mt-8 flex flex-wrap gap-4 text-sm text-neutral-400">
@@ -271,7 +271,7 @@
 
       <div class="flex items-center justify-between">
         <p class="text-neutral-400 text-xs sm:text-sm">
-          ctrl+V magnet links or drag torrent files to window to add
+          ctrl+v magnet links or drag torrent files to window to add
         </p>
         <button
           class="font-semibold text-orange-300 underline underline-offset-2 transition hover:text-orange-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
@@ -309,7 +309,7 @@
           drop to add
         </p>
         <p class="mt-4 text-sm text-neutral-400 sm:text-lg">
-          Drop a .torrent file or magnet link and TorrentLab will start it.
+          drop a .torrent file or magnet link and Torrentlab will start it.
         </p>
         <div class="mx-auto mt-8 h-1 w-24 rounded-full bg-orange-300"></div>
       </div>

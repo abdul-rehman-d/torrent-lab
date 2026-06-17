@@ -21,14 +21,14 @@
       } else if (file) {
         await addTorrentFile(file);
       } else {
-        throw new Error('Paste a magnet link or choose a torrent file.');
+        throw new Error('paste a magnet link or choose a torrent file.');
       }
       magnet = '';
       file = null;
       onAdded();
       onClose();
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to add torrent.';
+      error = err instanceof Error ? err.message : 'failed to add torrent.';
     } finally {
       saving = false;
     }
@@ -44,9 +44,9 @@
     aria-labelledby="add-title"
   >
     <h2 id="add-title" class="font-bitcount text-2xl font-semibold tracking-wide text-indigo-400 sm:text-3xl">add torrent</h2>
-    <p class="mt-2 text-sm text-neutral-400">Paste a magnet link or choose a torrent file.</p>
+    <p class="mt-2 text-sm text-neutral-400">paste a magnet link or choose a torrent file.</p>
     <label class="mt-6 grid gap-2 text-sm font-semibold text-neutral-400">
-      Magnet link
+      magnet link
       <textarea
         class="min-h-32 w-full resize-y rounded-xl border border-neutral-700 bg-neutral-950 p-3 text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-orange-300 focus:ring-2 focus:ring-orange-300/20"
         bind:value={magnet}

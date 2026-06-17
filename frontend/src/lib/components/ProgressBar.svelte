@@ -6,7 +6,7 @@
 
 <div
   class="h-2 w-full overflow-hidden rounded-full bg-neutral-800"
-  aria-label={`Download progress ${value}%`}
+  aria-label={`download progress ${value}%`}
   role="progressbar"
   aria-valuemin="0"
   aria-valuemax="100"

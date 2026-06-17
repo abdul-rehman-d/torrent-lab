@@ -25,9 +25,9 @@
     </div>
     <button
       class="rounded-lg p-2 text-red-400 transition hover:bg-red-400/10 hover:text-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
-      aria-label={`Remove ${torrent.name}`}
+      aria-label={`remove ${torrent.name}`}
       onclick={() => onRemove(torrent.hash)}
-      title="Remove from qBittorrent"
+      title="remove from qBittorrent"
     >
       <svg
         class="h-5 w-5"
