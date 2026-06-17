@@ -27,6 +27,7 @@ type Client struct {
 	http     *http.Client
 	mu       sync.Mutex
 	loggedIn bool
+	blocked  error
 }
 
 type Torrent struct {
@@ -61,6 +62,7 @@ func (c *Client) Configure(baseURL, username, password string) {
 	c.username = username
 	c.password = password
 	c.loggedIn = false
+	c.blocked = nil
 	jar, _ := cookiejar.New(nil)
 	c.http.Jar = jar
 }
@@ -140,7 +142,10 @@ func (c *Client) SetLocation(ctx context.Context, hash, location string) error {
 }
 
 func (c *Client) login(ctx context.Context) error {
-	baseURL, username, password, loggedIn := c.currentLogin()
+	baseURL, username, password, loggedIn, blocked := c.currentLogin()
+	if blocked != nil {
+		return blocked
+	}
 	if baseURL == "" || username == "" || password == "" {
 		return ErrNotConfigured
 	}
@@ -159,6 +164,7 @@ func (c *Client) login(ctx context.Context) error {
 
 	resp, err := c.http.Do(req)
 	if err != nil {
+		c.block(err)
 		return err
 	}
 	defer resp.Body.Close()
@@ -168,7 +174,9 @@ func (c *Client) login(ctx context.Context) error {
 	}
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK || strings.TrimSpace(string(body)) != "Ok." {
-		return fmt.Errorf("qbit login failed: status %d body %q", resp.StatusCode, string(body))
+		err := fmt.Errorf("qbit login failed: status %d body %q", resp.StatusCode, string(body))
+		c.block(err)
+		return err
 	}
 	c.markLoggedIn()
 	return nil
@@ -195,16 +203,21 @@ func (c *Client) request(ctx context.Context, method, path string, body io.Reade
 func (c *Client) doJSON(req *http.Request, out any) error {
 	resp, err := c.http.Do(req)
 	if err != nil {
+		c.block(err)
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusForbidden {
 		c.markLoggedOut()
-		return fmt.Errorf("qbit request forbidden")
+		err := fmt.Errorf("qbit request forbidden")
+		c.block(err)
+		return err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("qbit request failed: status %d body %q", resp.StatusCode, string(body))
+		err := fmt.Errorf("qbit request failed: status %d body %q", resp.StatusCode, string(body))
+		c.block(err)
+		return err
 	}
 	return json.NewDecoder(resp.Body).Decode(out)
 }
@@ -212,18 +225,30 @@ func (c *Client) doJSON(req *http.Request, out any) error {
 func (c *Client) do(req *http.Request) error {
 	resp, err := c.http.Do(req)
 	if err != nil {
+		c.block(err)
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusForbidden {
 		c.markLoggedOut()
-		return fmt.Errorf("qbit request forbidden")
+		err := fmt.Errorf("qbit request forbidden")
+		c.block(err)
+		return err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("qbit request failed: status %d body %q", resp.StatusCode, string(body))
+		err := fmt.Errorf("qbit request failed: status %d body %q", resp.StatusCode, string(body))
+		c.block(err)
+		return err
 	}
 	return nil
+}
+
+func (c *Client) block(err error) {
+	c.mu.Lock()
+	c.blocked = err
+	c.loggedIn = false
+	c.mu.Unlock()
 }
 
 func (c *Client) markLoggedOut() {
@@ -238,10 +263,10 @@ func (c *Client) markLoggedIn() {
 	c.mu.Unlock()
 }
 
-func (c *Client) currentLogin() (string, string, string, bool) {
+func (c *Client) currentLogin() (string, string, string, bool, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.baseURL, c.username, c.password, c.loggedIn
+	return c.baseURL, c.username, c.password, c.loggedIn, c.blocked
 }
 
 func (c *Client) currentBaseURL() string {

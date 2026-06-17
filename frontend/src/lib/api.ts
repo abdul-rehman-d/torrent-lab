@@ -9,6 +9,33 @@ export type Torrent = {
   kind: 'movie' | 'tv';
 };
 
+export type AppConfig = {
+  configured: boolean;
+  qbitUrl: string;
+  qbitUsername: string;
+};
+
+export type QbitConfigInput = {
+  qbitUrl: string;
+  qbitUsername: string;
+  qbitPassword: string;
+};
+
+export async function getConfig(): Promise<AppConfig> {
+  const response = await fetch(`${apiBase}/config`);
+  if (!response.ok) throw new Error(await errorMessage(response));
+  return response.json();
+}
+
+export async function saveQbitConfig(config: QbitConfigInput): Promise<void> {
+  const response = await fetch(`${apiBase}/config/qbit`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config)
+  });
+  if (!response.ok) throw new Error(await errorMessage(response));
+}
+
 export async function listTorrents(): Promise<Torrent[]> {
   const response = await fetch(`${apiBase}/torrents`);
   if (!response.ok) throw new Error(await errorMessage(response));
