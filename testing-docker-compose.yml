@@ -4,6 +4,7 @@ services:
     environment:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
+      UMASK: "${UMASK:-002}"
       TZ: ${TZ:-Etc/UTC}
       WEBUI_PORT: 4000
       TORRENTING_PORT: ${TORRENTING_PORT:-6881}
@@ -24,6 +25,7 @@ services:
       context: .
     environment:
       CONFIG_DIR: ${CONFIG_DIR:-/config}
+      UMASK: ${UMASK:-002}
       MOVIES_PATH: /media/movies
       TV_PATH: /media/tv
       INCOMPLETE_PATH: /torrents/incomplete

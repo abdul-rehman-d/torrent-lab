@@ -3,7 +3,10 @@ set -eu
 
 PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
+UMASK="${UMASK:-002}"
 CONFIG_DIR="${CONFIG_DIR:-/config}"
+
+umask "$UMASK"
 
 if ! getent group app >/dev/null 2>&1; then
   addgroup -g "$PGID" -S app

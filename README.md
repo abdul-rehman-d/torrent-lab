@@ -19,6 +19,7 @@ services:
     environment:
       PUID: 1000
       PGID: 1000
+      UMASK: "002"
       TZ: Etc/UTC
       WEBUI_PORT: 4000
       TORRENTING_PORT: 6881
@@ -40,6 +41,7 @@ services:
     environment:
       PUID: 1000
       PGID: 1000
+      UMASK: "002"
       CONFIG_DIR: /config
       MOVIES_PATH: /media/movies
       TV_PATH: /media/tv
@@ -98,6 +100,7 @@ TorrentLab stores qBittorrent connection settings in `qbit.json` under `CONFIG_D
 | ----------------- | --------------------------- | --------------------------------------------------------------------------------- |
 | `PUID`            | `1000`                      | User ID used to run TorrentLab and write `CONFIG_DIR`.                            |
 | `PGID`            | `1000`                      | Group ID used to run TorrentLab and write `CONFIG_DIR`.                           |
+| `UMASK`           | `002`                       | File creation mask used by TorrentLab-created directories.                        |
 | `PORT`            | `5000`                      | HTTP port inside the TorrentLab container.                                        |
 | `CONFIG_DIR`      | `./config`                  | Directory where TorrentLab stores `qbit.json`. Use `/config` in Docker.           |
 | `WEB_DIR`         | `./web`                     | Directory containing the built frontend. The published image sets this to `/web`. |
