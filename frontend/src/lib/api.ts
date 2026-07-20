@@ -66,6 +66,11 @@ export async function removeTorrent(hash: string): Promise<void> {
   if (!response.ok) throw new Error(await errorMessage(response));
 }
 
+export async function restartService(): Promise<void> {
+  const response = await fetch(`${apiBase}/restart`, { method: 'POST' });
+  if (!response.ok) throw new Error(await errorMessage(response));
+}
+
 async function errorMessage(response: Response): Promise<string> {
   try {
     const body = await response.json();

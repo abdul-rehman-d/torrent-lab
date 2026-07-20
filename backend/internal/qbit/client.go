@@ -67,6 +67,15 @@ func (c *Client) Configure(baseURL, username, password string) {
 	c.http.Jar = jar
 }
 
+func (c *Client) Restart() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.loggedIn = false
+	c.blocked = nil
+	jar, _ := cookiejar.New(nil)
+	c.http.Jar = jar
+}
+
 func (c *Client) ListTorrents(ctx context.Context) ([]Torrent, error) {
 	req, err := c.request(ctx, http.MethodGet, "/api/v2/torrents/info", nil, "")
 	if err != nil {

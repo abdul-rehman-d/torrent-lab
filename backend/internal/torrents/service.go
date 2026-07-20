@@ -82,6 +82,12 @@ func (s *Service) Delete(ctx context.Context, hash string) error {
 	return s.qbit.DeleteTorrent(ctx, hash, false)
 }
 
+func (s *Service) Restart() {
+	s.movedMu.Lock()
+	s.moved = make(map[string]struct{})
+	s.movedMu.Unlock()
+}
+
 func (s *Service) StartCompletionWorker(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()

@@ -165,4 +165,5 @@ Useful API endpoints:
 GET /api/health
 GET /api/config
 PUT /api/config/qbit
+POST /api/restart
 ```

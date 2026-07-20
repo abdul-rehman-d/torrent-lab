@@ -19,6 +19,7 @@ type router struct {
 
 type QbitConfigurer interface {
 	Configure(baseURL, username, password string)
+	Restart()
 }
 
 func NewRouter(service *torrents.Service, qbitClient QbitConfigurer, cfg config.Config) http.Handler {
@@ -27,6 +28,7 @@ func NewRouter(service *torrents.Service, qbitClient QbitConfigurer, cfg config.
 	mux.HandleFunc("GET /api/health", r.health)
 	mux.HandleFunc("GET /api/config", r.config)
 	mux.HandleFunc("PUT /api/config/qbit", r.updateQbitConfig)
+	mux.HandleFunc("POST /api/restart", r.restart)
 	mux.HandleFunc("GET /api/torrents", r.list)
 	mux.HandleFunc("POST /api/torrents/magnet", r.addMagnet)
 	mux.HandleFunc("POST /api/torrents/file", r.addFile)
@@ -86,6 +88,12 @@ func (r *router) updateQbitConfig(w http.ResponseWriter, req *http.Request) {
 	r.cfg.QbitPassword = qbit.Password
 	r.qbitClient.Configure(qbit.URL, qbit.Username, qbit.Password)
 	writeJSON(w, http.StatusOK, map[string]any{"configured": true})
+}
+
+func (r *router) restart(w http.ResponseWriter, _ *http.Request) {
+	r.service.Restart()
+	r.qbitClient.Restart()
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (r *router) list(w http.ResponseWriter, req *http.Request) {
