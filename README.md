@@ -1,6 +1,6 @@
 # TorrentLab
 
-TorrentLab is a lightweight web UI for qBittorrent in a home lab. It adds magnet links or `.torrent` files, shows torrent progress, and moves completed downloads into movie and TV library folders.
+TorrentLab is a lightweight web UI for qBittorrent in a home lab. It adds magnet links or `.torrent` files, shows torrent progress, and moves completed downloads into movie, TV, ebook, and comic library folders.
 
 The container includes the Go API and the built Svelte frontend. qBittorrent runs as a separate container or service.
 
@@ -31,6 +31,8 @@ services:
       - ./data/qbittorrent/config:/config
       - ./data/media/movies:/media/movies
       - ./data/media/tv:/media/tv
+      - ./data/media/books:/media/books
+      - ./data/media/comics:/media/comics
       - ./data/torrents/incomplete:/torrents/incomplete
       - ./data/torrents/downloads:/torrents/downloads
     restart: unless-stopped
@@ -45,6 +47,8 @@ services:
       CONFIG_DIR: /config
       MOVIES_PATH: /media/movies
       TV_PATH: /media/tv
+      BOOKS_PATH: /media/books
+      COMICS_PATH: /media/comics
       INCOMPLETE_PATH: /torrents/incomplete
       DOWNLOADS_PATH: /torrents/downloads
       PORT: 5000
@@ -54,6 +58,8 @@ services:
       - ./data/config:/config
       - ./data/media/movies:/media/movies
       - ./data/media/tv:/media/tv
+      - ./data/media/books:/media/books
+      - ./data/media/comics:/media/comics
       - ./data/torrents/incomplete:/torrents/incomplete
       - ./data/torrents/downloads:/torrents/downloads
     depends_on:
@@ -106,6 +112,8 @@ TorrentLab stores qBittorrent connection settings in `qbit.json` under `CONFIG_D
 | `WEB_DIR`         | `./web`                     | Directory containing the built frontend. The published image sets this to `/web`. |
 | `MOVIES_PATH`     | `/data/media/movies`        | Movie library path visible inside the TorrentLab container.                       |
 | `TV_PATH`         | `/data/media/tv`            | TV library path visible inside the TorrentLab container.                          |
+| `BOOKS_PATH`      | `/data/media/books`         | Ebook library path visible inside the TorrentLab container.                        |
+| `COMICS_PATH`     | `/data/media/comics`        | Comics library path visible inside the TorrentLab container.                       |
 | `INCOMPLETE_PATH` | `/data/torrents/incomplete` | Incomplete download path. Keep this aligned with qBittorrent.                     |
 | `DOWNLOADS_PATH`  | `/data/torrents/downloads`  | Completed download path. Keep this aligned with qBittorrent.                      |
 
@@ -129,7 +137,20 @@ TorrentLab adds magnet links and torrent files to qBittorrent using the configur
 
 Completed torrents are moved through qBittorrent's `setLocation` API, so qBittorrent keeps seeding from the new library path. Manual removal removes the torrent from qBittorrent without deleting files.
 
-TV detection uses `S01` or `S01E01` style filename markers. TV files are moved under `TV_PATH`, and movie files are moved under `MOVIES_PATH`.
+TV detection uses `S01` or `S01E01` style filename markers. TV files are moved under `TV_PATH`, and video files are moved under `MOVIES_PATH`. EPUB/PDF files are moved under `BOOKS_PATH`; CBZ/CBR/CB7/CBT files are moved under `COMICS_PATH`.
+
+Kavita's library roots should be the books and comics folders. Organize ebooks in series folders when they belong together, and set their EPUB metadata (title, author, and series/series index when relevant). For comics, keep each series in its own folder and use Kavita-readable issue or volume markers in filenames, for example:
+
+```text
+comics/
+  Saga/
+    Saga v01.cbz
+    Saga v02.cbz
+  Batman (2016)/
+    Batman (2016) #001.cbz
+```
+
+TorrentLab can place comic files in a folder based on the torrent's name, but it does not infer series/issue metadata or rename archive contents. Review multi-file comic torrents and arrange them into Kavita's recommended series/volume layout before scanning. Keep torrent and media paths mounted identically in qBittorrent and TorrentLab so completed torrents can continue seeding after they are moved.
 
 ## Local Testing
 

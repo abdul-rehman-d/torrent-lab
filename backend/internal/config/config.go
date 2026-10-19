@@ -13,6 +13,8 @@ type Config struct {
 	QbitPassword   string `json:"-"`
 	MoviesPath     string `json:"moviesPath"`
 	TVPath         string `json:"tvPath"`
+	BooksPath      string `json:"booksPath"`
+	ComicsPath     string `json:"comicsPath"`
 	IncompletePath string `json:"incompletePath"`
 	DownloadsPath  string `json:"downloadsPath"`
 	Port           string `json:"-"`
@@ -25,6 +27,8 @@ func Load() (Config, error) {
 	cfg := Config{
 		MoviesPath:     env("MOVIES_PATH", "/data/media/movies"),
 		TVPath:         env("TV_PATH", "/data/media/tv"),
+		BooksPath:      env("BOOKS_PATH", "/data/media/books"),
+		ComicsPath:     env("COMICS_PATH", "/data/media/comics"),
 		IncompletePath: env("INCOMPLETE_PATH", "/data/torrents/incomplete"),
 		DownloadsPath:  env("DOWNLOADS_PATH", "/data/torrents/downloads"),
 		Port:           env("PORT", "8080"),

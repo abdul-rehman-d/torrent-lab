@@ -66,6 +66,8 @@ func (r *router) config(w http.ResponseWriter, _ *http.Request) {
 		"qbitUsername":   r.cfg.QbitUsername,
 		"moviesPath":     r.cfg.MoviesPath,
 		"tvPath":         r.cfg.TVPath,
+		"booksPath":      r.cfg.BooksPath,
+		"comicsPath":     r.cfg.ComicsPath,
 		"incompletePath": r.cfg.IncompletePath,
 		"downloadsPath":  r.cfg.DownloadsPath,
 	})

@@ -26,7 +26,7 @@ func main() {
 	}
 
 	qbitClient := qbit.NewClient(cfg.QbitURL, cfg.QbitUsername, cfg.QbitPassword, cfg.DownloadsPath)
-	sorter := media.NewSorter(cfg.DownloadsPath, cfg.MoviesPath, cfg.TVPath)
+	sorter := media.NewSorter(cfg.DownloadsPath, cfg.MoviesPath, cfg.TVPath, cfg.BooksPath, cfg.ComicsPath)
 	service := torrents.NewService(qbitClient, sorter, logger)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

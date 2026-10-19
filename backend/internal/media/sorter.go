@@ -16,6 +16,8 @@ type Sorter struct {
 	downloadsPath string
 	moviesPath    string
 	tvPath        string
+	booksPath     string
+	comicsPath    string
 }
 
 type MediaInfo struct {
@@ -24,19 +26,29 @@ type MediaInfo struct {
 	Season string
 }
 
-func NewSorter(downloadsPath, moviesPath, tvPath string) *Sorter {
-	return &Sorter{downloadsPath: downloadsPath, moviesPath: moviesPath, tvPath: tvPath}
+func NewSorter(downloadsPath, moviesPath, tvPath string, libraryPaths ...string) *Sorter {
+	s := &Sorter{downloadsPath: downloadsPath, moviesPath: moviesPath, tvPath: tvPath}
+	if len(libraryPaths) > 0 {
+		s.booksPath = libraryPaths[0]
+	}
+	if len(libraryPaths) > 1 {
+		s.comicsPath = libraryPaths[1]
+	}
+	return s
 }
 
 func GuessKind(name string) string {
-	if seasonPattern.MatchString(name) {
-		return "tv"
-	}
-	return "movie"
+	return Parse(name).Kind
 }
 
 func Parse(name string) MediaInfo {
 	base := strings.TrimSuffix(filepath.Base(name), filepath.Ext(name))
+	switch strings.ToLower(filepath.Ext(name)) {
+	case ".epub":
+		return MediaInfo{Kind: "book", Title: cleanTitle(base)}
+	case ".cbz", ".cbr", ".cb7", ".cbt", ".pdf":
+		return MediaInfo{Kind: "comic", Title: cleanTitle(base)}
+	}
 	matches := seasonPattern.FindStringSubmatchIndex(base)
 	if matches == nil {
 		return MediaInfo{Kind: "movie", Title: cleanTitle(base)}
@@ -97,6 +109,12 @@ func (s *Sorter) IsSorted(currentPath, destination string) bool {
 }
 
 func (s *Sorter) destinationDir(info MediaInfo) string {
+	if info.Kind == "book" && s.booksPath != "" {
+		return filepath.Join(s.booksPath, info.Title)
+	}
+	if info.Kind == "comic" && s.comicsPath != "" {
+		return filepath.Join(s.comicsPath, info.Title)
+	}
 	if info.Kind == "tv" {
 		season := info.Season
 		if season == "" {
@@ -140,7 +158,7 @@ func collectMediaEntries(sourcePath string) ([]string, error) {
 
 func isMediaFile(path string) bool {
 	switch strings.ToLower(filepath.Ext(path)) {
-	case ".mkv", ".mp4", ".avi", ".mov", ".m4v", ".webm":
+	case ".mkv", ".mp4", ".avi", ".mov", ".m4v", ".webm", ".epub", ".pdf", ".cbz", ".cbr", ".cb7", ".cbt":
 		return true
 	default:
 		return false

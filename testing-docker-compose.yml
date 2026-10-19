@@ -16,6 +16,8 @@ services:
       - ./data/qbittorrent/config:/config
       - ./data/media/movies:/media/movies
       - ./data/media/tv:/media/tv
+      - ./data/media/books:/media/books
+      - ./data/media/comics:/media/comics
       - ./data/torrents/incomplete:/torrents/incomplete
       - ./data/torrents/downloads:/torrents/downloads
     restart: unless-stopped
@@ -28,6 +30,8 @@ services:
       UMASK: ${UMASK:-002}
       MOVIES_PATH: /media/movies
       TV_PATH: /media/tv
+      BOOKS_PATH: /media/books
+      COMICS_PATH: /media/comics
       INCOMPLETE_PATH: /torrents/incomplete
       DOWNLOADS_PATH: /torrents/downloads
       PORT: 8080
@@ -37,6 +41,8 @@ services:
       - ./data/config:${CONFIG_DIR:-/config}
       - ./data/media/movies:/media/movies
       - ./data/media/tv:/media/tv
+      - ./data/media/books:/media/books
+      - ./data/media/comics:/media/comics
       - ./data/torrents/incomplete:/torrents/incomplete
       - ./data/torrents/downloads:/torrents/downloads
     depends_on:
