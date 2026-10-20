@@ -216,7 +216,7 @@
           <a href="/" class="text-indigo-400"> Torrentlab </a>
         </h1>
         <p class="text-base sm:text-lg lg:text-xl text-neutral-400">
-          quickly add torrents and organize your movies and shows automagically
+          quickly add torrents and organize your media automagically
           ✨
         </p>
       </div>

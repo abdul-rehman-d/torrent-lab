@@ -14,6 +14,7 @@ import (
 
 type QbitClient interface {
 	ListTorrents(context.Context) ([]qbit.Torrent, error)
+	ListTorrentFiles(context.Context, string) ([]qbit.TorrentFile, error)
 	AddMagnet(context.Context, string) error
 	AddTorrentFile(context.Context, string, io.Reader) error
 	DeleteTorrent(context.Context, string, bool) error
@@ -21,11 +22,14 @@ type QbitClient interface {
 }
 
 type Service struct {
-	qbit    QbitClient
-	sorter  *media.Sorter
-	logger  *slog.Logger
-	movedMu sync.Mutex
-	moved   map[string]struct{}
+	qbit          QbitClient
+	sorter        *media.Sorter
+	logger        *slog.Logger
+	movedMu       sync.Mutex
+	moved         map[string]struct{}
+	kindMu        sync.Mutex
+	kinds         map[string]string
+	kindCheckedAt map[string]time.Time
 }
 
 type TorrentView struct {
@@ -38,7 +42,11 @@ type TorrentView struct {
 }
 
 func NewService(qbit QbitClient, sorter *media.Sorter, logger *slog.Logger) *Service {
-	return &Service{qbit: qbit, sorter: sorter, logger: logger, moved: make(map[string]struct{})}
+	return &Service{
+		qbit: qbit, sorter: sorter, logger: logger,
+		moved: make(map[string]struct{}), kinds: make(map[string]string),
+		kindCheckedAt: make(map[string]time.Time),
+	}
 }
 
 func (s *Service) List(ctx context.Context) ([]TorrentView, error) {
@@ -49,16 +57,63 @@ func (s *Service) List(ctx context.Context) ([]TorrentView, error) {
 
 	views := make([]TorrentView, 0, len(items))
 	for _, item := range items {
+		kind := media.GuessKind(item.Name)
+		if cached := s.cachedKind(item.Hash); cached != "" {
+			kind = cached
+		} else if media.NeedsFileInspection(item.Name) && s.shouldInspectKind(item.Hash) {
+			files, err := s.qbit.ListTorrentFiles(ctx, item.Hash)
+			s.markKindChecked(item.Hash)
+			if err == nil && len(files) > 0 {
+				names := make([]string, 0, len(files))
+				for _, file := range files {
+					names = append(names, file.Name)
+				}
+				if detected := media.GuessKindFromFiles(names); detected != "" {
+					kind = detected
+					s.cacheKind(item.Hash, kind)
+				} else {
+					kind = "checking"
+				}
+			} else {
+				kind = "checking"
+			}
+		} else if media.NeedsFileInspection(item.Name) {
+			kind = "checking"
+		}
 		views = append(views, TorrentView{
 			Hash:     item.Hash,
 			Name:     item.Name,
 			Progress: item.Progress,
 			ETA:      item.ETA,
 			State:    item.State,
-			Kind:     media.GuessKind(item.Name),
+			Kind:     kind,
 		})
 	}
 	return views, nil
+}
+
+func (s *Service) cachedKind(hash string) string {
+	s.kindMu.Lock()
+	defer s.kindMu.Unlock()
+	return s.kinds[hash]
+}
+
+func (s *Service) shouldInspectKind(hash string) bool {
+	s.kindMu.Lock()
+	defer s.kindMu.Unlock()
+	return time.Since(s.kindCheckedAt[hash]) >= 10*time.Second
+}
+
+func (s *Service) markKindChecked(hash string) {
+	s.kindMu.Lock()
+	s.kindCheckedAt[hash] = time.Now()
+	s.kindMu.Unlock()
+}
+
+func (s *Service) cacheKind(hash, kind string) {
+	s.kindMu.Lock()
+	s.kinds[hash] = kind
+	s.kindMu.Unlock()
 }
 
 func (s *Service) AddMagnet(ctx context.Context, magnet string) error {
@@ -122,6 +177,35 @@ func (s *Service) processCompleted(ctx context.Context) {
 		}
 		if path == "" {
 			s.logger.Warn("completed torrent has no path", "name", item.Name, "hash", item.Hash)
+			continue
+		}
+		files, filesErr := s.qbit.ListTorrentFiles(ctx, item.Hash)
+		fileNames := make([]string, 0, len(files))
+		if filesErr == nil {
+			for _, file := range files {
+				fileNames = append(fileNames, file.Name)
+			}
+		}
+		kind := media.GuessKindFromFiles(fileNames)
+		if kind == "" {
+			kind = media.GuessKindFromPath(path, item.Name)
+		}
+		if kind == "comic" {
+			downloadsPath := s.sorter.DownloadsPath()
+			if !s.sorter.IsSorted(item.SavePath, downloadsPath) {
+				if err := s.qbit.SetLocation(ctx, item.Hash, downloadsPath); err != nil {
+					s.logger.Warn("move comic torrent back to seeding storage", "name", item.Name, "destination", downloadsPath, "error", err)
+					continue
+				}
+				continue
+			}
+			seriesDir, err := s.sorter.OrganizeComicFiles(path, fileNames, item.Name, item.Hash)
+			if err != nil {
+				s.logger.Warn("organize completed comic", "name", item.Name, "path", path, "error", err)
+				continue
+			}
+			s.markMoved(item.Hash)
+			s.logger.Info("organized completed comic", "name", item.Name, "libraryPath", seriesDir)
 			continue
 		}
 		destination, err := s.sorter.DestinationLocation(path, item.Name)

@@ -89,6 +89,24 @@ func (c *Client) ListTorrents(ctx context.Context) ([]Torrent, error) {
 	return torrents, nil
 }
 
+type TorrentFile struct {
+	Name string `json:"name"`
+}
+
+func (c *Client) ListTorrentFiles(ctx context.Context, hash string) ([]TorrentFile, error) {
+	query := url.Values{}
+	query.Set("hash", hash)
+	req, err := c.request(ctx, http.MethodGet, "/api/v2/torrents/files?"+query.Encode(), nil, "")
+	if err != nil {
+		return nil, err
+	}
+	var files []TorrentFile
+	if err := c.doJSON(req, &files); err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
 func (c *Client) AddMagnet(ctx context.Context, magnet string) error {
 	form := url.Values{}
 	form.Set("urls", magnet)

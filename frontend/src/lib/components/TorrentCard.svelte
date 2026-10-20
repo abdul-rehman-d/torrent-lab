@@ -20,7 +20,7 @@
         {torrent.name}
       </h2>
       <p class="mt-2 text-sm text-neutral-400">
-        {torrent.kind} / {torrent.state} / ETA: {formatEta(torrent.eta)}
+        {torrent.kind === "checking" ? "checking files" : torrent.kind} / {torrent.state} / ETA: {formatEta(torrent.eta)}
       </p>
     </div>
     <button

@@ -133,11 +133,11 @@ When TorrentLab and qBittorrent are in the same Compose file, use `http://qbitto
 
 ## Behavior
 
-TorrentLab adds magnet links and torrent files to qBittorrent using the configured downloads path. The UI and API are served from the same port, with API routes under `/api`.
+TorrentLab adds magnet links and torrent files to qBittorrent using the configured downloads path. The UI and API are served from the same port, with API routes under `/api`. For torrents whose title does not reveal the media type, TorrentLab checks qBittorrent's file list as soon as torrent metadata is available and labels the item from its file extensions. While magnet metadata is still loading, the UI shows `checking files`.
 
-Completed torrents are moved through qBittorrent's `setLocation` API, so qBittorrent keeps seeding from the new library path. Manual removal removes the torrent from qBittorrent without deleting files.
+Completed movie, TV, and ebook torrents are moved through qBittorrent's `setLocation` API, so qBittorrent keeps seeding from their library paths. Comics stay in the downloads folder for seeding; TorrentLab creates a Kavita-ready series folder under the comic library and hard-links each archive there, falling back to a copy if the storage mounts do not allow hard links. Manual removal removes the torrent from qBittorrent without deleting files.
 
-TV detection uses `S01` or `S01E01` style filename markers. TV files are moved under `TV_PATH`, and video files are moved under `MOVIES_PATH`. EPUB/PDF files are moved under `BOOKS_PATH`; CBZ/CBR/CB7/CBT files are moved under `COMICS_PATH`.
+TV detection uses `S01` or `S01E01` style filename markers. TV files are moved under `TV_PATH`, and video files are moved under `MOVIES_PATH`. EPUB files are moved under `BOOKS_PATH`. PDF/CBZ/CBR/CB7/CBT files are organized automatically under `COMICS_PATH/<series>/` using the torrent file list. TorrentLab derives the series folder from the filename before a volume or issue marker and keeps each original archive filename intact, so Kavita receives the series-folder layout without manual cleanup.
 
 Kavita's library roots should be the books and comics folders. Organize ebooks in series folders when they belong together, and set their EPUB metadata (title, author, and series/series index when relevant). For comics, keep each series in its own folder and use Kavita-readable issue or volume markers in filenames, for example:
 

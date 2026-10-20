@@ -6,7 +6,7 @@ export type Torrent = {
   progress: number;
   eta: number;
   state: string;
-  kind: 'movie' | 'tv';
+  kind: 'movie' | 'tv' | 'book' | 'comic' | 'checking';
 };
 
 export type AppConfig = {
